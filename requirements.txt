@@ -1,1 +1,10 @@
-icalendar
+fastapi==0.111.0
+uvicorn[standard]==0.30.1
+requests==2.32.3
+pytz==2024.1
+timezonefinder==6.5.3
+astral==3.2
+skyfield==1.49
+icalendar==6.3.1
+python-dateutil==2.9.0.post0
+tzdata==2025.2
