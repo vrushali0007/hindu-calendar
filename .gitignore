@@ -1,7 +1,41 @@
+# --- Python ---
 __pycache__/
 *.pyc
-.venv/
-.DS_Store
+*.pyo
+*.pyd
+*.pdb
+*.egg-info/
 *.log
+*.sqlite3
+
+# Virtual environments
 .venv/
-__pycache__/
+env/
+venv/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# --- IDEs ---
+# PyCharm / IntelliJ
+.idea/
+*.iml
+
+# VSCode (if you open with it sometimes)
+.vscode/
+
+# --- macOS ---
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+
+# --- Build / dist ---
+build/
+dist/
+*.egg
+.eggs/
+
+# --- Calendars ---
+site/*.ics
