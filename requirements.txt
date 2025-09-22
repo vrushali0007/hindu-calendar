@@ -3,7 +3,7 @@ uvicorn[standard]==0.30.1
 requests==2.32.3
 pytz==2024.1
 # Pin to a pure-Python release to avoid h3/CMake on Render
-timezonefinder==6.1.9
+timezonefinder==5.2.0
 astral==3.2
 skyfield==1.49
 icalendar==6.3.1
