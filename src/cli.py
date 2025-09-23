@@ -3,11 +3,11 @@ from pathlib import Path
 from hashlib import md5
 from datetime import timedelta
 from icalendar import Calendar, Event
-import requests
 import pytz
 from typing import Optional
 
 from .astronomy import events_for_year
+from .location import autolocate
 
 UTC = pytz.utc
 
@@ -29,18 +29,6 @@ def coalesce_rahukaal_for_viewer(events, viewer_tzid: str):
 
 def ensure_site_dir():
     Path("site").mkdir(parents=True, exist_ok=True)
-
-def autolocate() -> tuple[float, float]:
-    try:
-        r = requests.get("https://ipinfo.io/json", timeout=4)
-        if r.ok and r.json().get("loc"):
-            lat_s, lon_s = r.json()["loc"].split(",")
-            return float(lat_s), float(lon_s)
-    except Exception:
-        pass
-    r = requests.get("https://ipapi.co/json", timeout=4)
-    r.raise_for_status()
-    return float(r.json()["latitude"]), float(r.json()["longitude"])
 
 def stable_uid(e):
     if e.get("all_day", True):
