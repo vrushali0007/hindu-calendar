@@ -1,5 +1,4 @@
 # server/app.py
-from fastapi.staticfiles import StaticFiles
 from datetime import timedelta
 from pathlib import Path
 from hashlib import md5
@@ -7,12 +6,23 @@ from typing import Optional
 
 import pytz
 from fastapi import FastAPI, Query
-from fastapi.responses import PlainTextResponse, StreamingResponse
+from fastapi.responses import StreamingResponse, HTMLResponse
+from fastapi.staticfiles import StaticFiles
 
-# import your event generator
 from src.astronomy import events_for_year
 
 app = FastAPI(title="Hindu Calendar API")
+
+# Serve everything under /site as static (so /site/index.html works too)
+app.mount("/site", StaticFiles(directory="site", html=True), name="site")
+
+# Root shows the frontend page if present; otherwise a simple message
+@app.get("/", response_class=HTMLResponse)
+def root_page():
+    index = Path("site/index.html")
+    if index.exists():
+        return index.read_text(encoding="utf-8")
+    return "Hindu Calendar API is running. Try /docs for the interactive UI."
 
 # --------- helpers (ICS builder & Rahukaal coalescer) ---------
 def stable_uid(e):
@@ -22,7 +32,8 @@ def stable_uid(e):
         key = f"{e['summary']}|{e['date_start'].isoformat()}|{e['date_end'].isoformat()}"
     return f"{md5(key.encode()).hexdigest()}@hinducalendar"
 
-def build_ics(events, prodid="-//Hindu Calendar (Location-aware)//vrushali//EN", calname="Hindu Calendar", tzid: Optional[str]=None):
+def build_ics(events, prodid="-//Hindu Calendar (Location-aware)//vrushali//EN",
+              calname="Hindu Calendar", tzid: Optional[str] = None):
     from icalendar import Calendar, Event  # lazy import
     cal = Calendar()
     cal.add("prodid", prodid)
@@ -41,12 +52,11 @@ def build_ics(events, prodid="-//Hindu Calendar (Location-aware)//vrushali//EN",
             ev.add("dtend", dt + timedelta(days=1))
         else:
             ev.add("dtstart", e["date_start"])
-            ev.add("dtend",   e["date_end"])
+            ev.add("dtend", e["date_end"])
         cal.add_component(ev)
     return cal.to_ical()
 
 def coalesce_rahukaal_for_viewer(events, viewer_tzid: str):
-    import pytz
     vt = pytz.timezone(viewer_tzid)
     rk = [e for e in events if not e.get("all_day", True) and e.get("summary") == "Rahu Kaal"]
     per = {}
@@ -61,11 +71,6 @@ def coalesce_rahukaal_for_viewer(events, viewer_tzid: str):
     keep = [e for e in events if not (not e.get("all_day", True) and e.get("summary") == "Rahu Kaal")]
     keep.extend(chosen)
     return keep
-
-# --------------------- routes ---------------------
-@app.get("/", response_class=PlainTextResponse)
-def root():
-    return "Hindu Calendar API is running. Try /docs for the interactive UI."
 
 @app.get("/health")
 def health():
@@ -112,9 +117,7 @@ def ics(
             pass
 
     # build ics and return as download
-    name = f"hindu-calendar-{yf}-{yt if yt!=yf else ''}{'' if yt!=yf else ''}.ics".replace("--", "-").strip("-")
+    name = f"hindu-calendar-{yf}-{yt if yt!=yf else ''}{'' if yt!=yf else ''}.ics".replace('--', '-').strip('-')
     payload = build_ics(all_events, calname="Hindu Calendar", tzid=viewer_tz)
     headers = {"Content-Disposition": f'attachment; filename="{name}"'}
     return StreamingResponse(iter([payload]), media_type="text/calendar", headers=headers)
-# Serve the frontend from / (root)
-app.mount("/", StaticFiles(directory="site", html=True), name="site")
