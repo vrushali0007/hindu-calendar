@@ -1,4 +1,5 @@
 # server/app.py
+from fastapi.staticfiles import StaticFiles
 from datetime import timedelta
 from pathlib import Path
 from hashlib import md5
@@ -115,3 +116,5 @@ def ics(
     payload = build_ics(all_events, calname="Hindu Calendar", tzid=viewer_tz)
     headers = {"Content-Disposition": f'attachment; filename="{name}"'}
     return StreamingResponse(iter([payload]), media_type="text/calendar", headers=headers)
+# Serve the frontend from / (root)
+app.mount("/", StaticFiles(directory="site", html=True), name="site")

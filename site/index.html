@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Hindu Calendar – Download</title>
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; line-height:1.4; padding: 24px; max-width: 700px; margin: 0 auto; }
+    h1 { margin: 0 0 12px; }
+    .card { border: 1px solid #ddd; border-radius: 10px; padding: 16px; margin: 16px 0; }
+    label { display:block; margin: 12px 0 6px; font-weight: 600; }
+    input[type="number"] { width: 100%; padding: 8px; }
+    select { padding:8px; }
+    button { padding: 10px 14px; border: 0; border-radius: 8px; background:#0a7; color:white; font-weight:600; cursor:pointer; }
+    button.secondary { background:#555; }
+    .row { display:flex; gap:12px; flex-wrap: wrap; align-items: flex-end; }
+    .row > * { flex: 1 1 220px; }
+    .muted { color:#666; font-size: 13px; }
+    .ok { color:#0a7; font-weight:600; }
+    .err { color:#b00; font-weight:600; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  </style>
+</head>
+<body>
+  <h1>Hindu Calendar (.ics)</h1>
+  <p class="muted">Pick a year, let the browser fetch your location (with permission), and download the location-aware calendar.</p>
+
+  <div class="card">
+    <div class="row">
+      <div>
+        <label for="year">Year</label>
+        <select id="year"></select>
+        <div class="muted">Default is current year. You can choose any year in the list.</div>
+      </div>
+
+      <div>
+        <label>Location</label>
+        <div class="row" style="gap:8px;">
+          <button id="btn-loc">Use my location</button>
+          <button id="btn-clear" class="secondary">Clear</button>
+        </div>
+        <div id="loc-status" class="muted">No location yet.</div>
+
+        <div style="margin-top:8px">
+          <div class="muted">Manual (optional):</div>
+          <div class="row">
+            <div>
+              <label for="lat">Latitude</label>
+              <input id="lat" type="number" step="0.000001" placeholder="e.g. 19.07">
+            </div>
+            <div>
+              <label for="lon">Longitude</label>
+              <input id="lon" type="number" step="0.000001" placeholder="e.g. 72.88">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:16px" class="row">
+      <button id="btn-dl">Download .ics</button>
+      <button id="btn-copy" class="secondary">Copy my download link</button>
+    </div>
+    <div id="msg" class="muted" style="margin-top:10px"></div>
+  </div>
+
+  <div class="card">
+    <h3>What this does</h3>
+    <ul>
+      <li>Asks for your browser’s location (or you can type latitude/longitude).</li>
+      <li>Uses your device timezone automatically.</li>
+      <li>Downloads a ready-to-import <span class="mono">.ics</span> calendar.</li>
+    </ul>
+  </div>
+
+<script>
+  // 1) Year dropdown (current ± 5 years)
+  (function(){
+    const sel = document.getElementById('year');
+    const now = new Date().getFullYear();
+    const start = now - 2, end = now + 5;
+    for (let y = start; y <= end; y++) {
+      const opt = document.createElement('option');
+      opt.value = y; opt.textContent = y;
+      if (y === now) opt.selected = true;
+      sel.appendChild(opt);
+    }
+  })();
+
+  const msg = (t, cls="muted") => { const el = document.getElementById('msg'); el.className = cls; el.textContent = t; };
+  const locStatus = t => { document.getElementById('loc-status').textContent = t; };
+
+  const latEl = document.getElementById('lat');
+  const lonEl = document.getElementById('lon');
+
+  // 2) Use browser geolocation (works on HTTPS & on localhost)
+  document.getElementById('btn-loc').addEventListener('click', () => {
+    msg("Getting location…");
+    if (!navigator.geolocation) {
+      msg("Geolocation is not supported in this browser.", "err");
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        const { latitude, longitude } = pos.coords;
+        latEl.value = latitude.toFixed(6);
+        lonEl.value = longitude.toFixed(6);
+        locStatus(`Location set: lat ${latitude.toFixed(4)}, lon ${longitude.toFixed(4)}`);
+        msg("Location captured ✔︎", "ok");
+      },
+      err => {
+        msg("Could not get location: " + err.message, "err");
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+    );
+  });
+
+  document.getElementById('btn-clear').addEventListener('click', () => {
+    latEl.value = ""; lonEl.value = "";
+    locStatus("No location yet.");
+    msg("");
+  });
+
+  // 3) Build the /ics URL for this server
+  function buildUrl() {
+    const year = document.getElementById('year').value;
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "";
+    const lat = parseFloat(latEl.value);
+    const lon = parseFloat(lonEl.value);
+    if (Number.isNaN(lat) || Number.isNaN(lon)) {
+      throw new Error("Location missing. Click “Use my location” or enter lat/lon.");
+    }
+    const params = new URLSearchParams({
+      lat: lat.toString(),
+      lon: lon.toString(),
+      year: year.toString(),
+      viewer_tz: tz
+    });
+    return `/ics?${params.toString()}`;
+  }
+
+  // 4) Download .ics
+  document.getElementById('btn-dl').addEventListener('click', async () => {
+    try {
+      msg("Preparing your calendar…");
+      const url = buildUrl();
+      const resp = await fetch(url);
+      if (!resp.ok) throw new Error(`Server error (${resp.status})`);
+      const blob = await resp.blob();
+      const a = document.createElement('a');
+      const year = document.getElementById('year').value;
+      a.href = URL.createObjectURL(blob);
+      a.download = `hindu-calendar-${year}.ics`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      msg("Download started ✔︎", "ok");
+    } catch (e) {
+      msg(e.message, "err");
+    }
+  });
+
+  // 5) Copy a shareable direct link
+  document.getElementById('btn-copy').addEventListener('click', async () => {
+    try {
+      const url = new URL(buildUrl(), window.location.origin).toString();
+      await navigator.clipboard.writeText(url);
+      msg("Link copied to clipboard ✔︎", "ok");
+    } catch (e) {
+      msg("Could not copy. " + e.message, "err");
+    }
+  });
+</script>
+</body>
+</html>
