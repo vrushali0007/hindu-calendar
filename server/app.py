@@ -5,11 +5,12 @@ from hashlib import md5
 from typing import Optional
 
 import pytz
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import PlainTextResponse, StreamingResponse
 
 # import your event generator
 from src.astronomy import events_for_year
+from src.location import autolocate
 
 app = FastAPI(title="Hindu Calendar API")
 
@@ -72,8 +73,14 @@ def health():
 
 @app.get("/ics")
 def ics(
-    lat: float = Query(..., description="Latitude"),
-    lon: float = Query(..., description="Longitude"),
+    lat: Optional[float] = Query(
+        None,
+        description="Latitude (decimal). Required unless auto_location=true.",
+    ),
+    lon: Optional[float] = Query(
+        None,
+        description="Longitude (decimal). Required unless auto_location=true.",
+    ),
     year: int = Query(..., description="Start year, e.g. 2025"),
     year_to: Optional[int] = Query(None, description="End year (inclusive). If omitted, equals 'year'."),
     tradition: str = Query("smartha", pattern="^(smartha|vaishnava)$"),
@@ -83,7 +90,26 @@ def ics(
     no_festivals: bool = False,
     festivals: str = Query("all", description='Comma list or "all"'),
     viewer_tz: Optional[str] = Query(None, description="e.g. 'Europe/Stockholm'"),
+    auto_location: bool = Query(
+        False,
+        description="Detect latitude/longitude from the request IP when not provided.",
+    ),
 ):
+    if auto_location:
+        try:
+            lat, lon = autolocate()
+        except Exception as exc:
+            raise HTTPException(
+                status_code=400,
+                detail="Auto-location failed; provide lat and lon manually.",
+            ) from exc
+
+    if lat is None or lon is None:
+        raise HTTPException(
+            status_code=400,
+            detail="Provide lat and lon, or set auto_location=true to detect them automatically.",
+        )
+
     yf = year
     yt = year_to or year
 
