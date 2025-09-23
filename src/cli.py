@@ -1,4 +1,5 @@
 import argparse
+import datetime
 from pathlib import Path
 from hashlib import md5
 from datetime import timedelta
@@ -86,8 +87,17 @@ def main():
     ap.add_argument("--lat", type=float, help="Latitude (decimal)")
     ap.add_argument("--lon", type=float, help="Longitude (decimal)")
     ap.add_argument("--auto-location", action="store_true", help="Detect lat/lon from IP")
-    ap.add_argument("--year", type=int, required=True, help="Start year, e.g., 2025")
-    ap.add_argument("--year-to", type=int, help="End year (inclusive). If omitted, equals --year.")
+    ap.add_argument(
+        "--year",
+        type=int,
+        required=False,
+        help="Start year, e.g., 2025. Defaults to the current year.",
+    )
+    ap.add_argument(
+        "--year-to",
+        type=int,
+        help="End year (inclusive). If omitted, equals the start year.",
+    )
     ap.add_argument("--tradition", choices=["smartha", "vaishnava"], default="smartha")
     ap.add_argument("--no-sankashti", action="store_true")
     ap.add_argument("--no-ap", action="store_true")
@@ -111,11 +121,15 @@ def main():
     if args.lat is None or args.lon is None:
         raise SystemExit("Provide --lat and --lon, or use --auto-location.")
 
-    year_to = args.year_to or args.year
+    year_from = args.year if args.year is not None else datetime.date.today().year
+    if args.year_to is not None and args.year_to < year_from:
+        raise SystemExit("End year (--year-to) must be greater than or equal to the start year.")
+
+    year_to = args.year_to or year_from
     ensure_site_dir()
 
     events = generate_range(
-        args.lat, args.lon, args.year, year_to,
+        args.lat, args.lon, year_from, year_to,
         tradition=args.tradition,
         include_sankashti=not args.no_sankashti,
         include_amavasya_purnima=not args.no_ap,
@@ -129,11 +143,11 @@ def main():
 
     ics = build_ics(events, calname="Hindu Calendar", tzid=(args.viewer_tz or None))
     out = Path(args.outfile) if args.outfile else Path(
-        f"site/{args.year}-{year_to}-hindu-calendar.ics" if year_to != args.year
-        else f"site/{args.year}-hindu-calendar.ics"
+        f"site/{year_from}-{year_to}-hindu-calendar.ics" if year_to != year_from
+        else f"site/{year_from}-hindu-calendar.ics"
     )
     out.write_bytes(ics)
-    msg = f"Wrote {out}  (lat={args.lat}, lon={args.lon}, years={args.year}..{year_to})"
+    msg = f"Wrote {out}  (lat={args.lat}, lon={args.lon}, years={year_from}..{year_to})"
     if args.viewer_tz:
         msg += f"  [viewer-tz={args.viewer_tz}]"
     print(msg)

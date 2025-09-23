@@ -1,11 +1,11 @@
 # server/app.py
+import datetime
 from datetime import timedelta
-from pathlib import Path
 from hashlib import md5
 from typing import Optional
 
 import pytz
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import PlainTextResponse, StreamingResponse
 
 # import your event generator
@@ -74,8 +74,8 @@ def health():
 def ics(
     lat: float = Query(..., description="Latitude"),
     lon: float = Query(..., description="Longitude"),
-    year: int = Query(..., description="Start year, e.g. 2025"),
-    year_to: Optional[int] = Query(None, description="End year (inclusive). If omitted, equals 'year'."),
+    year: Optional[int] = Query(None, description="Start year, e.g. 2025. Defaults to the current year."),
+    year_to: Optional[int] = Query(None, description="End year (inclusive). If omitted, equals the start year."),
     tradition: str = Query("smartha", pattern="^(smartha|vaishnava)$"),
     no_sankashti: bool = False,
     no_ap: bool = False,
@@ -84,8 +84,10 @@ def ics(
     festivals: str = Query("all", description='Comma list or "all"'),
     viewer_tz: Optional[str] = Query(None, description="e.g. 'Europe/Stockholm'"),
 ):
-    yf = year
-    yt = year_to or year
+    yf = year if year is not None else datetime.date.today().year
+    if year_to is not None and year_to < yf:
+        raise HTTPException(status_code=400, detail="End year must be greater than or equal to the start year.")
+    yt = year_to or yf
 
     # collect events for the whole range
     all_events = []
