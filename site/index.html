@@ -1,45 +1,97 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<html>
+<!doctype html>
+<html lang="en">
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-  <meta http-equiv="Content-Style-Type" content="text/css">
-  <title></title>
-  <meta name="Generator" content="Cocoa HTML Writer">
-  <meta name="CocoaVersion" content="2575.7">
-  <style type="text/css">
-    p.p2 {margin: 0.0px 0.0px 13.0px 0.0px; font: 13.0px 'Helvetica Neue'; color: #535353; -webkit-text-stroke: #535353}
-    p.p3 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px '.SF NS'; -webkit-text-stroke: #000000}
-    p.p4 {margin: 0.0px 0.0px 0.0px 0.0px; font: 13.0px 'Helvetica Neue'; color: #535353; -webkit-text-stroke: #535353}
-    p.p5 {margin: 0.0px 0.0px 0.0px 0.0px; text-align: center; font: 11.0px '.SF NS'; color: #ffffff; -webkit-text-stroke: #ffffff; background-color: #149d64}
-    p.p6 {margin: 0.0px 0.0px 0.0px 0.0px; text-align: center; font: 11.0px '.SF NS'; color: #ffffff; -webkit-text-stroke: #ffffff; background-color: #434343}
-    p.p7 {margin: 0.0px 0.0px 0.0px 0.0px; font: 13.0px 'Helvetica Neue'; color: #535353; -webkit-text-stroke: #535353; min-height: 16.0px}
-    li.li9 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px 'Helvetica Neue'; -webkit-text-stroke: #000000}
-    span.s1 {font-kerning: none}
-    span.s2 {-webkit-text-stroke: 0px #000000}
-    span.s3 {font: 12.0px '.AppleSystemUIFontMonospaced'; font-kerning: none}
-    ul.ul1 {list-style-type: disc}
+  <meta charset="utf-8">
+  <title>Hindu Calendar – Generate .ics</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <style>
+    :root { --bg:#0b1020; --card:#121a34; --text:#e7ecff; --muted:#9fb0ff; --accent:#7aa2ff; --accent2:#52d1b0; }
+    *{box-sizing:border-box} body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:linear-gradient(180deg,#0b1020,#0a1230);}
+    .wrap{max-width:680px;margin:6vh auto;padding:24px}
+    .card{background:var(--card);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:22px 20px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+    h1{color:var(--text);font-size:1.3rem;margin:0 0 10px}
+    p{color:var(--muted);margin:.4rem 0 1rem}
+    label{display:block;color:var(--muted);font-size:.9rem;margin:.7rem 0 .35rem}
+    input,select{width:100%;padding:12px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.12);background:#0e1530;color:var(--text);outline:none}
+    input:focus,select:focus{border-color:var(--accent)}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .btns{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+    button,.link{cursor:pointer;border:none;padding:12px 16px;border-radius:10px;font-weight:600}
+    .primary{background:var(--accent);color:#081226}
+    .ghost{background:transparent;border:1px solid rgba(255,255,255,.18);color:var(--text)}
+    small{color:#8aa0ff}
+    .ok{color:var(--accent2)} .err{color:#f57a7a}
   </style>
 </head>
 <body>
-<h1 style="margin: 0.0px 0.0px 12.0px 0.0px; font: 24.0px 'Helvetica Neue'; -webkit-text-stroke: #000000"><span class="s1"><b>Hindu Calendar (.ics)</b></span></h1>
-<p class="p2"><span class="s1">Pick a year, let the browser fetch your location (with permission), and download the location-aware calendar.</span></p>
-<p class="p3"><span class="s1"><b>Year</b></span></p>
-<p class="p4"><span class="s1">Default is current year. You can choose any year in the list.</span></p>
-<p class="p3"><span class="s1"><b>Location</b></span></p>
-<p class="p5"><span class="s1"><b>Use my location</b></span></p>
-<p class="p6"><span class="s1"><b>Clear</b></span></p>
-<p class="p4"><span class="s1">No location yet.</span></p>
-<p class="p4"><span class="s1">Manual (optional):</span></p>
-<p class="p3"><span class="s1"><b>Latitude</b></span></p>
-<p class="p3"><span class="s1"><b>Longitude</b></span></p>
-<p class="p5"><span class="s1"><b>Download .ics</b></span></p>
-<p class="p6"><span class="s1"><b>Copy my download link</b></span></p>
-<p class="p7"><span class="s1"></span><br></p>
-<h3 style="margin: 0.0px 0.0px 14.0px 0.0px; font: 14.0px 'Helvetica Neue'; -webkit-text-stroke: #000000"><span class="s1"><b>What this does</b></span></h3>
-<ul class="ul1">
-  <li class="li9"><span class="s2"></span><span class="s1">Asks for your browser’s location (or you can type latitude/longitude).</span></li>
-  <li class="li9"><span class="s2"></span><span class="s1">Uses your device timezone automatically.</span></li>
-  <li class="li9"><span class="s2"></span><span class="s1">Downloads a ready-to-import </span><span class="s3">.ics</span><span class="s1"> calendar.</span></li>
-</ul>
+  <div class="wrap">
+    <div class="card">
+      <h1>Hindu Calendar (.ics)</h1>
+      <p>Pick your location and year, then download an iCalendar file you can import into Apple/Google/Outlook calendars.</p>
+
+      <div class="row">
+        <div>
+          <label>Latitude</label>
+          <input id="lat" type="number" step="0.0001" placeholder="e.g. 19.07">
+        </div>
+        <div>
+          <label>Longitude</label>
+          <input id="lon" type="number" step="0.0001" placeholder="e.g. 72.88">
+        </div>
+      </div>
+
+      <label>Year</label>
+      <select id="year"></select>
+
+      <div class="btns">
+        <button class="ghost" id="useLoc">Use my location</button>
+        <button class="primary" id="download">Download .ics</button>
+      </div>
+      <p id="msg"><small></small></p>
+    </div>
+  </div>
+
+<script>
+(function init(){
+  // Year dropdown: current year ± 2
+  const ysel = document.getElementById('year');
+  const now = new Date().getFullYear();
+  for (let y = now-2; y <= now+2; y++){
+    const opt = document.createElement('option');
+    opt.value = String(y); opt.textContent = String(y);
+    if (y === now) opt.selected = true;
+    ysel.appendChild(opt);
+  }
+
+  function setMsg(t, cls){ const el = document.querySelector('#msg small'); el.textContent=t; el.className=cls||''; }
+
+  document.getElementById('useLoc').addEventListener('click', () => {
+    if (!navigator.geolocation) { setMsg('Geolocation not supported.', 'err'); return; }
+    setMsg('Requesting location…');
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        document.getElementById('lat').value = pos.coords.latitude.toFixed(4);
+        document.getElementById('lon').value = pos.coords.longitude.toFixed(4);
+        setMsg('Location filled ✔', 'ok');
+      },
+      (err) => {
+        setMsg('Could not get location: ' + (err && err.message ? err.message : 'denied'), 'err');
+      },
+      { enableHighAccuracy:true, timeout:10000, maximumAge:0 }
+    );
+  });
+
+  document.getElementById('download').addEventListener('click', () => {
+    const lat = document.getElementById('lat').value.trim();
+    const lon = document.getElementById('lon').value.trim();
+    const year = document.getElementById('year').value;
+    if (!lat || !lon){ setMsg('Please enter latitude and longitude (or use “Use my location”).', 'err'); return; }
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+    const url = `/ics?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}&year=${encodeURIComponent(year)}&viewer_tz=${encodeURIComponent(tz)}`;
+    setMsg('Preparing your file…');
+    window.location.href = url; // triggers browser download
+  });
+})();
+</script>
 </body>
 </html>
