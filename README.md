@@ -1,6 +1,6 @@
-# Hindu Calendar
+# Calendar Automation System
 
-A geo aware Hindu calendar that adjusts festival dates and Rahu Kaal to the user location and provides ICS feeds for Apple and Google Calendar.
+A geo aware calendar that handles complex data and calculations and adjusts festival dates and Rahu Kaal to the user location and provides ICS feeds for Apple and Google Calendar.
 
 ## What this project delivers
 1. Coverage for more than thirty major festivals and daily Rahu Kaal
