@@ -10,7 +10,7 @@ A geo aware calendar that handles complex data and calculations and adjusts fest
 
 ## Quick start
 ```bash
-git clone https://github.com/vrushali0007/hindu-calendar.git
+git clone https://github.com/vrushali0007/astro-calendar.git
 cd hindu-calendar
 python -m venv .venv
 source .venv/bin/activate    # on Windows use .venv\Scripts\activate
